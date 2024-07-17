@@ -1,0 +1,31 @@
+volumes:
+  data:
+  state:
+
+services:
+  ts:
+    image: tailscale/tailscale:latest
+    container_name: ts-mc
+    hostname: mc
+    restart: unless-stopped
+    volumes:
+      - state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    env_file: ./.ts.env
+    privileged: true
+    cap_add:
+      - net_admin
+      - sys_module
+  
+  mc:
+    image: itzg/minecraft-server
+    container_name: mc
+    stdin_open: true
+    tty: true
+    volumes:
+      - data:/data
+      - /etc/localtime:/etc/localtime:ro
+    network_mode: service:ts
+    depends_on:
+      - ts
+    env_file: ./.env
